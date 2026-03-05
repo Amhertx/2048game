@@ -19,56 +19,121 @@ const emit = defineEmits<{
   move: [direction: Direction]
 }>()
 
-// 触摸事件相关状态
-const touchStartX = ref(0)
-const touchStartY = ref(0)
-const touchEndX = ref(0)
-const touchEndY = ref(0)
+// 滑动事件相关状态（支持触摸和鼠标）
+const startX = ref(0)
+const startY = ref(0)
+const endX = ref(0)
+const endY = ref(0)
+const lastMoveTime = ref(0) // 上次移动时间，用于防抖
+const isDragging = ref(false) // 是否正在拖拽
 
 /**
- * 处理触摸开始事件
+ * 处理滑动开始（触摸或鼠标）
  */
-const handleTouchStart = (event: TouchEvent) => {
-  touchStartX.value = event.touches[0].clientX
-  touchStartY.value = event.touches[0].clientY
+const handleStart = (x: number, y: number) => {
+  startX.value = x
+  startY.value = y
+  endX.value = x
+  endY.value = y
+  isDragging.value = true
 }
 
 /**
- * 处理触摸移动事件
+ * 处理滑动移动（触摸或鼠标）
  */
-const handleTouchMove = (event: TouchEvent) => {
-  event.preventDefault() // 防止页面滚动
-  touchEndX.value = event.touches[0].clientX
-  touchEndY.value = event.touches[0].clientY
+const handleMove = (x: number, y: number) => {
+  if (!isDragging.value) return
+  endX.value = x
+  endY.value = y
 }
 
 /**
- * 处理触摸结束事件
- * 判断滑动方向并触发移动
+ * 处理滑动结束，判断方向并触发移动
  */
-const handleTouchEnd = () => {
-  const deltaX = touchEndX.value - touchStartX.value
-  const deltaY = touchEndY.value - touchStartY.value
-  const minSwipeDistance = 50 // 最小滑动距离
+const handleEnd = () => {
+  if (!isDragging.value) return
+  isDragging.value = false
+
+  const deltaX = endX.value - startX.value
+  const deltaY = endY.value - startY.value
+
+  // 根据屏幕大小动态调整最小滑动距离（屏幕尺寸的 5%，最小 30px）
+  const screenSize = Math.min(window.innerWidth, window.innerHeight)
+  const minSwipeDistance = Math.max(30, screenSize * 0.05)
+
+  // 计算滑动距离
+  const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
+
+  // 滑动距离不足，不触发移动
+  if (distance < minSwipeDistance) {
+    return
+  }
+
+  // 防抖：两次移动间隔至少 100ms
+  const now = Date.now()
+  if (now - lastMoveTime.value < 100) return
+  lastMoveTime.value = now
 
   // 判断滑动方向（取绝对值较大的方向）
   if (Math.abs(deltaX) > Math.abs(deltaY)) {
-    // 水平滑动
-    if (Math.abs(deltaX) > minSwipeDistance) {
-      emit('move', deltaX > 0 ? 'right' : 'left')
-    }
+    emit('move', deltaX > 0 ? 'right' : 'left')
   } else {
-    // 垂直滑动
-    if (Math.abs(deltaY) > minSwipeDistance) {
-      emit('move', deltaY > 0 ? 'down' : 'up')
-    }
+    emit('move', deltaY > 0 ? 'down' : 'up')
   }
+}
 
-  // 重置触摸状态
-  touchStartX.value = 0
-  touchStartY.value = 0
-  touchEndX.value = 0
-  touchEndY.value = 0
+/**
+ * 触摸开始事件
+ */
+const handleTouchStart = (event: TouchEvent) => {
+  const touch = event.touches[0]
+  handleStart(touch.clientX, touch.clientY)
+}
+
+/**
+ * 触摸移动事件
+ */
+const handleTouchMove = (event: TouchEvent) => {
+  event.preventDefault()
+  const touch = event.touches[0]
+  handleMove(touch.clientX, touch.clientY)
+}
+
+/**
+ * 触摸结束事件
+ */
+const handleTouchEnd = () => {
+  handleEnd()
+}
+
+/**
+ * 鼠标按下事件（用于浏览器模拟器）
+ */
+const handleMouseDown = (event: MouseEvent) => {
+  handleStart(event.clientX, event.clientY)
+}
+
+/**
+ * 鼠标移动事件
+ */
+const handleMouseMove = (event: MouseEvent) => {
+  handleMove(event.clientX, event.clientY)
+}
+
+/**
+ * 鼠标释放事件
+ */
+const handleMouseUp = () => {
+  handleEnd()
+}
+
+/**
+ * 鼠标离开事件
+ */
+const handleMouseLeave = () => {
+  if (isDragging.value) {
+    handleEnd()
+  }
 }
 
 /**
@@ -94,6 +159,10 @@ const getTiles = () => {
     @touchstart="handleTouchStart"
     @touchmove="handleTouchMove"
     @touchend="handleTouchEnd"
+    @mousedown="handleMouseDown"
+    @mousemove="handleMouseMove"
+    @mouseup="handleMouseUp"
+    @mouseleave="handleMouseLeave"
   >
     <!-- 背景网格 -->
     <div class="grid-background">
@@ -119,16 +188,27 @@ const getTiles = () => {
   position: relative;
   background: #bbada0;
   border-radius: 6px;
-  padding: 10px;
+  padding: var(--grid-padding, 10px);
   touch-action: none; /* 禁用浏览器默认触摸行为 */
   user-select: none;
+  -webkit-user-select: none; /* iOS Safari */
+  -webkit-touch-callout: none; /* iOS 长按菜单 */
+  -webkit-tap-highlight-color: transparent; /* 移除点击高亮 */
+  /* 启用 GPU 加速，优化动画性能 */
+  will-change: transform;
+  -webkit-transform: translateZ(0);
+}
+
+/* 触摸反馈效果 */
+.game-board:active {
+  opacity: 0.95;
 }
 
 .grid-background {
   display: grid;
-  grid-template-columns: repeat(4, 100px);
-  grid-template-rows: repeat(4, 100px);
-  gap: 10px;
+  grid-template-columns: repeat(4, var(--cell-size, 100px));
+  grid-template-rows: repeat(4, var(--cell-size, 100px));
+  gap: var(--grid-gap, 10px);
 }
 
 .grid-cell {
@@ -138,23 +218,10 @@ const getTiles = () => {
 
 .tiles-container {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  width: 460px;
-  height: 460px;
-}
-
-/* 响应式布局 */
-@media (max-width: 500px) {
-  .grid-background {
-    grid-template-columns: repeat(4, 70px);
-    grid-template-rows: repeat(4, 70px);
-    gap: 8px;
-  }
-
-  .tiles-container {
-    width: 316px;
-    height: 316px;
-  }
+  top: var(--grid-padding, 10px);
+  left: var(--grid-padding, 10px);
+  /* 动态计算容器尺寸：4个单元格 + 3个间隙 */
+  width: calc(var(--cell-size, 100px) * 4 + var(--grid-gap, 10px) * 3);
+  height: calc(var(--cell-size, 100px) * 4 + var(--grid-gap, 10px) * 3);
 }
 </style>

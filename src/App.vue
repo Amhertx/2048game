@@ -10,6 +10,15 @@ import '@/styles/game.css'
 const gameStore = useGameStore()
 
 /**
+ * 检测当前设备是否为触摸设备
+ * 通过检测触摸事件支持和触摸点数量来判断
+ * @returns {boolean} 如果是触摸设备返回 true，否则返回 false
+ */
+const isTouchDevice = (): boolean => {
+  return 'ontouchstart' in window || navigator.maxTouchPoints > 0
+}
+
+/**
  * 处理键盘事件
  * 监听方向键并触发移动
  */
@@ -51,15 +60,21 @@ const undo = () => {
   gameStore.undo()
 }
 
-// 组件挂载时初始化游戏并添加键盘监听
+// 组件挂载时初始化游戏，仅在桌面端添加键盘监听
 onMounted(() => {
   gameStore.initGame()
-  window.addEventListener('keydown', handleKeydown)
+  // 只在非触摸设备（桌面端）添加键盘事件监听
+  // 移动端完全依赖触摸滑动操作
+  if (!isTouchDevice()) {
+    window.addEventListener('keydown', handleKeydown)
+  }
 })
 
-// 组件卸载时移除键盘监听
+// 组件卸载时移除键盘监听（如果存在）
 onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown)
+  if (!isTouchDevice()) {
+    window.removeEventListener('keydown', handleKeydown)
+  }
 })
 </script>
 
@@ -89,27 +104,45 @@ onUnmounted(() => {
 <style scoped>
 .game-container {
   max-width: 500px;
-  margin: 50px auto;
+  margin: 30px auto;
   padding: 20px;
   background: #faf8ef;
   border-radius: 8px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
-/* 响应式布局 */
+/* 响应式布局 - 使用 CSS 变量 */
 @media (max-width: 520px) {
   .game-container {
-    max-width: 340px;
-    margin: 20px auto;
-    padding: 15px;
+    max-width: calc(100vw - 20px);
+    margin: 15px auto;
+    padding: 12px;
+    border-radius: 6px;
   }
 }
 
-@media (max-width: 360px) {
+@media (max-width: 414px) {
   .game-container {
-    max-width: 300px;
+    max-width: calc(100vw - 16px);
     margin: 10px auto;
     padding: 10px;
+  }
+}
+
+@media (max-width: 375px) {
+  .game-container {
+    max-width: calc(100vw - 12px);
+    margin: 8px auto;
+    padding: 8px;
+  }
+}
+
+@media (max-width: 320px) {
+  .game-container {
+    max-width: calc(100vw - 10px);
+    margin: 5px auto;
+    padding: 6px;
+    border-radius: 4px;
   }
 }
 </style>

@@ -48,23 +48,24 @@ const textColor = computed(() => {
 /**
  * 根据数值调整字体大小
  * 数值越大，字体越小以适应方块
+ * 使用 CSS 变量实现响应式字体
  */
 const fontSize = computed(() => {
-  if (props.value >= 1024) return '1.5rem'
-  if (props.value >= 128) return '1.8rem'
-  return '2rem'
+  if (props.value >= 1024) return 'var(--tile-font-size-xlarge, 1.5rem)'
+  if (props.value >= 128) return 'var(--tile-font-size-large, 1.8rem)'
+  return 'var(--tile-font-size-base, 2rem)'
 })
 
 /**
  * 计算方块的位置样式
+ * 使用 CSS 变量实现响应式定位
  */
 const positionStyle = computed(() => {
-  const cellSize = 100 // 单元格大小（px）
-  const gap = 10 // 间隙大小（px）
-  const x = props.position.col * (cellSize + gap)
-  const y = props.position.row * (cellSize + gap)
+  // 使用 CSS calc() 计算位置，支持响应式
+  const x = `calc(var(--cell-size, 100px) * ${props.position.col} + var(--grid-gap, 10px) * ${props.position.col})`
+  const y = `calc(var(--cell-size, 100px) * ${props.position.row} + var(--grid-gap, 10px) * ${props.position.row})`
   return {
-    transform: `translate(${x}px, ${y}px)`
+    transform: `translate(${x}, ${y})`
   }
 })
 </script>
@@ -94,10 +95,13 @@ const positionStyle = computed(() => {
 <style scoped>
 .tile {
   position: absolute;
-  width: 100px;
-  height: 100px;
+  width: var(--cell-size, 100px);
+  height: var(--cell-size, 100px);
   z-index: 10;
   user-select: none;
+  /* 启用 GPU 加速，优化动画性能 */
+  will-change: transform;
+  -webkit-transform: translateZ(0);
 }
 
 .tile-inner {
@@ -110,6 +114,9 @@ const positionStyle = computed(() => {
   font-weight: bold;
   font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
   transition: transform 150ms ease-in-out;
+  /* 防止文字溢出 */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* 新方块出现动画 */
