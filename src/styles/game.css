@@ -1,0 +1,135 @@
+/**
+ * 2048 游戏主样式文件
+ * 经典扁平风格设计
+ */
+
+/* 全局变量 */
+:root {
+  --game-bg-color: #faf8ef;
+  --grid-bg-color: #bbada0;
+  --empty-cell-bg: rgba(238, 228, 218, 0.35);
+  --text-dark: #776e65;
+  --text-light: #f9f6f2;
+  --button-bg: #8f7a66;
+}
+
+/* 游戏容器 */
+.game-container {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 20px;
+  background: var(--game-bg-color);
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* 方块颜色方案 */
+.tile-2 { background-color: #eee4da; color: var(--text-dark); }
+.tile-4 { background-color: #ede0c8; color: var(--text-dark); }
+.tile-8 { background-color: #f2b179; color: var(--text-light); }
+.tile-16 { background-color: #f59563; color: var(--text-light); }
+.tile-32 { background-color: #f67c5f; color: var(--text-light); }
+.tile-64 { background-color: #f65e3b; color: var(--text-light); }
+.tile-128 { background-color: #edcf72; color: var(--text-light); }
+.tile-256 { background-color: #edcc61; color: var(--text-light); }
+.tile-512 { background-color: #edc850; color: var(--text-light); }
+.tile-1024 { background-color: #edc53f; color: var(--text-light); }
+.tile-2048 { background-color: #edc22e; color: var(--text-light); }
+.tile-super { background-color: #3c3a32; color: var(--text-light); }
+
+/* 动画效果 */
+@keyframes appear {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes slide {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(var(--slide-x, 0), var(--slide-y, 0));
+  }
+}
+
+/* 响应式布局 */
+@media (max-width: 520px) {
+  .game-container {
+    max-width: 340px;
+    padding: 15px;
+  }
+}
+
+@media (max-width: 360px) {
+  .game-container {
+    max-width: 300px;
+    padding: 10px;
+  }
+}
+
+/* 移动端优化 */
+@media (max-width: 500px) {
+  html, body {
+    overflow-x: hidden;
+  }
+
+  body {
+    margin: 0;
+    padding: 10px;
+  }
+}
+
+/* 触摸反馈 */
+@media (hover: none) and (pointer: coarse) {
+  button:active {
+    transform: scale(0.95);
+    opacity: 0.9;
+  }
+}
+
+/* 无障碍访问 */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* 高对比度模式 */
+@media (prefers-contrast: high) {
+  .tile-2, .tile-4 {
+    border: 2px solid var(--text-dark);
+  }
+
+  .tile-8, .tile-16, .tile-32, .tile-64,
+  .tile-128, .tile-256, .tile-512, .tile-1024, .tile-2048 {
+    border: 2px solid var(--text-light);
+  }
+}
+
+/* 打印样式 */
+@media print {
+  .game-controls,
+  .modal-overlay {
+    display: none;
+  }
+}
