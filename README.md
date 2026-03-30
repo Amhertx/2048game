@@ -1,5 +1,39 @@
-# Vue 3 + TypeScript + Vite
+# 2048 Game
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+一个使用 Vue 3 + TypeScript + Vite 构建的经典 2048 游戏。
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+## 功能特性
+
+- 经典的 2048 滑动合并玩法
+- 键盘方向键控制
+- 移动端触摸滑动支持
+- 分数系统
+- 游戏结束检测
+- 响应式设计
+
+## 技术栈
+
+- Vue 3
+- TypeScript
+- Vite
+- Pinia (状态管理)
+
+## 运行项目
+
+```bash
+# 安装依赖
+npm install
+
+# 启动开发服务器
+npm run dev
+
+# 构建生产版本
+npm run build
+```
+
+## 游戏玩法
+
+- 使用 **方向键** 或 **滑动** 移动所有数字方块
+- 相同数字的方块碰撞时会合并成它们的和
+- 当无法移动时游戏结束
+- 目标是达到 **2048**！
